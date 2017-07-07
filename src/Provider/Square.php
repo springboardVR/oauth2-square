@@ -140,8 +140,10 @@ class Square extends AbstractProvider
     protected function prepareAccessTokenResult(array $result)
     {
         // Square uses a ISO 8601 timestamp to represent the expiration date.
-        // http://docs.connect.squareup.com/#post-token
-        $result['expires_in'] = strtotime($result['expires_at']) - time();
+        // https://docs.connect.squareup.com/api/oauth/#post-token
+        if (array_has_key('expires_in', $result)) {
+          $result['expires_in'] = strtotime($result['expires_at']) - time();
+        }
 
         return parent::prepareAccessTokenResult($result);
     }
