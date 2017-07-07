@@ -133,7 +133,7 @@ class Square extends AbstractProvider
     {
         // Square uses a ISO 8601 timestamp to represent the expiration date.
         // https://docs.connect.squareup.com/api/oauth/#post-token
-        if (array_has_key('expires_in', $result)) {
+        if (array_key_exists('expires_in', $result)) {
           $result['expires_in'] = strtotime($result['expires_at']) - time();
         }
 
