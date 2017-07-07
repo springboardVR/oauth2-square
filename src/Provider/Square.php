@@ -12,13 +12,6 @@ use League\OAuth2\Client\Grant\RefreshToken;
 
 class Square extends AbstractProvider
 {
-    /**
-     * Enable debugging by connecting to the Square staging server.
-     *
-     * @var boolean
-     */
-    public $debug = false;
-
     public $uidKey = 'merchant_id';
 
     public $scopeSeparator = ' ';
@@ -31,8 +24,7 @@ class Square extends AbstractProvider
      */
     public function getConnectUrl($path)
     {
-        $staging = $this->debug ? 'staging' : '';
-        return "https://connect.squareup{$staging}.com/{$path}";
+        return "https://connect.squareup.com/{$path}";
     }
 
     public function urlAuthorize()

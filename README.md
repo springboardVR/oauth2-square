@@ -20,8 +20,6 @@ composer require wheniwork/oauth2-square
 
 Usage is the same as The League's OAuth client, using `Wheniwork\OAuth2\Client\Provider\Square` as the provider.
 
-To make requests against the Square staging server, pass `'debug' => true` as part of the initial configuration options.
-
 ### Authorization Code Flow
 
 ```php
