@@ -2,10 +2,10 @@
 
 namespace Wheniwork\OAuth2\Client\Grant;
 
-use League\OAuth2\Client\Grant\GrantInterface;
 use League\OAuth2\Client\Token\AccessToken as AccessToken;
+use League\OAuth2\Client\Grant\AbstractGrant;
 
-class RenewToken implements GrantInterface
+class RenewToken extends AbstractGrant
 {
     /**
      * @var  string
@@ -18,7 +18,7 @@ class RenewToken implements GrantInterface
     public function __construct(AccessToken $token = null)
     {
         if ($token) {
-            $this->accessToken = $token->accessToken;
+            $this->accessToken = $token->getToken();
         }
     }
 
@@ -42,5 +42,22 @@ class RenewToken implements GrantInterface
     public function handleResponse($response = [])
     {
         return new AccessToken($response);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function getName()
+    {
+        return 'renew_token';
+    }
+    /**
+     * @inheritdoc
+     */
+    protected function getRequiredRequestParameters()
+    {
+        return [
+            'renew_token',
+        ];
     }
 }

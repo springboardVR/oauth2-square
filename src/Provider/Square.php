@@ -7,16 +7,19 @@ use Wheniwork\OAuth2\Client\Grant\RenewToken;
 use Guzzle\Http\Exception\BadResponseException;
 use League\OAuth2\Client\Exception\IDPException;
 use League\OAuth2\Client\Provider\AbstractProvider;
+use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Grant\RefreshToken;
+use Psr\Http\Message\ResponseInterface;
 
 class Square extends AbstractProvider
 {
-    public $uidKey = 'merchant_id';
+    use BearerAuthorizationTrait;
 
     public $scopeSeparator = ' ';
     public $defaultScopes = [];
     public $accessTokenResourceOwnerId = null;
+    private $responseError = 'error';
 
     /**
      * Get a Square connect URL, depending on path.
@@ -83,6 +86,12 @@ class Square extends AbstractProvider
         return $user;
     }
 
+    protected function getAccessTokenMethod()
+    {
+        return parent::getAccessTokenMethod();
+    }
+
+
     /**
      * Provides support for token renewal instead of token refreshing.
      *
@@ -90,7 +99,7 @@ class Square extends AbstractProvider
      *
      * @return AccessToken
      */
-    public function getAccessTokenMethod($grant = 'authorization_code', $params = [])
+    public function getAccessToken($grant, array $options = [])
     {
         if ($grant === 'refresh_token' || $grant instanceof RefreshToken) {
             throw new \InvalidArgumentException(
@@ -103,10 +112,10 @@ class Square extends AbstractProvider
         }
 
         if (!($grant instanceof RenewToken)) {
-            return parent::getAccessToken($grant, $params);
+            return parent::getAccessToken($grant, $options);
         }
 
-        $requestParams = $grant->prepRequestParams([], $params);
+        $requestParams = $grant->prepRequestParams([], $options);
 
         $headers = [
             'Authorization' => 'Client ' . $this->clientSecret,
@@ -114,11 +123,13 @@ class Square extends AbstractProvider
         ];
 
         try {
-            $request = $this->getHttpClient()
-                ->post($this->urlRenewToken(), $headers)
-                ->setBody(json_encode($requestParams), 'application/json')
-                ->send();
-            $response = $request->getBody();
+          $guzzle = $this->getHttpClient();
+          $request = $guzzle->request('POST', $this->urlRenewToken(), [
+            'json' => $requestParams,
+            'headers' => $headers,
+          ]);
+
+          $response = $request->getBody();
         } catch (BadResponseException $e) {
             // @codeCoverageIgnoreStart
             $response = $e->getParsedResponse()->getBody();
@@ -155,5 +166,25 @@ class Square extends AbstractProvider
         }
 
         return parent::prepareAccessTokenResult($result);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function checkResponse(ResponseInterface $response, $data)
+    {
+        // TODO: Re-evaluate what this did and get it working with the new version
+        // if (!empty($data[$this->responseError])) {
+        //     $error = $data[$this->responseError];
+        //     $code  = $this->responseCode ? $data[$this->responseCode] : 0;
+        //     throw new IdentityProviderException($error, $code, $data);
+        // }
+    }
+    /**
+     * @inheritdoc
+     */
+    protected function createResourceOwner(array $response, AccessToken $token)
+    {
+        return new GenericResourceOwner($response, $this->responseResourceOwnerId);
     }
 }
