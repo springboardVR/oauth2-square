@@ -34,7 +34,7 @@ class Square extends AbstractProvider
         return $this->getConnectUrl('oauth2/authorize');
     }
 
-    public function getBaseAccessTokenUrl()
+    public function getBaseAccessTokenUrl(array $params)
     {
         return $this->getConnectUrl('oauth2/token');
     }
