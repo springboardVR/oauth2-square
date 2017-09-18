@@ -15,6 +15,8 @@ class Square extends AbstractProvider
     public $uidKey = 'merchant_id';
 
     public $scopeSeparator = ' ';
+    public $defaultScopes = [];
+    public $accessTokenResourceOwnerId = null;
 
     /**
      * Get a Square connect URL, depending on path.
@@ -27,14 +29,34 @@ class Square extends AbstractProvider
         return "https://connect.squareup.com/{$path}";
     }
 
-    public function urlAuthorize()
+    public function getBaseAuthorizationUrl()
     {
         return $this->getConnectUrl('oauth2/authorize');
     }
 
-    public function urlAccessToken()
+    public function getBaseAccessTokenUrl()
     {
         return $this->getConnectUrl('oauth2/token');
+    }
+
+    public function getResourceOwnerDetailsUrl()
+    {
+        return $this->getConnectUrl('v1/me');
+    }
+
+    public function getDefaultScopes()
+    {
+        return $this->defaultScopes;
+    }
+
+    public function getAccessTokenResourceOwnerId()
+    {
+      return $this->accessTokenResourceOwnerId ?: parent::getAccessTokenResourceOwnerId();
+    }
+
+    public function getScopeSeparator()
+    {
+        return $this->scopeSeparator;
     }
 
     /**
@@ -53,11 +75,6 @@ class Square extends AbstractProvider
         ));
     }
 
-    public function urlUserDetails(AccessToken $token)
-    {
-        return $this->getConnectUrl('v1/me');
-    }
-
     public function userDetails($response, AccessToken $token)
     {
         // Ensure the response is converted to an array, recursively
@@ -73,7 +90,7 @@ class Square extends AbstractProvider
      *
      * @return AccessToken
      */
-    public function getAccessToken($grant = 'authorization_code', $params = [])
+    public function getAccessTokenMethod($grant = 'authorization_code', $params = [])
     {
         if ($grant === 'refresh_token' || $grant instanceof RefreshToken) {
             throw new \InvalidArgumentException(
