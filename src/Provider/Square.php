@@ -39,7 +39,7 @@ class Square extends AbstractProvider
         return $this->getConnectUrl('oauth2/token');
     }
 
-    public function getResourceOwnerDetailsUrl()
+    public function getResourceOwnerDetailsUrl(AccessToken $token)
     {
         return $this->getConnectUrl('v1/me');
     }
