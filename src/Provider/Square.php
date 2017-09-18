@@ -11,6 +11,7 @@ use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
 use League\OAuth2\Client\Token\AccessToken;
 use League\OAuth2\Client\Grant\RefreshToken;
 use Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\Exception\ClientException;
 
 class Square extends AbstractProvider
 {
@@ -134,6 +135,8 @@ class Square extends AbstractProvider
             // @codeCoverageIgnoreStart
             $response = $e->getParsedResponse()->getBody();
             // @codeCoverageIgnoreEnd
+        } catch (ClientException $e) {
+          return false;
         }
 
         $result = json_decode($response, true);
@@ -165,7 +168,7 @@ class Square extends AbstractProvider
           $result['expires_in'] = strtotime($result['expires_at']) - time();
         }
 
-        return parent::prepareAccessTokenResult($result);
+        return $result;
     }
 
     /**
