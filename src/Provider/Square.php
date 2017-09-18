@@ -104,7 +104,7 @@ class Square extends AbstractProvider
             $response = $request->getBody();
         } catch (BadResponseException $e) {
             // @codeCoverageIgnoreStart
-            $response = $e->getResponse()->getBody();
+            $response = $e->getParsedResponse()->getBody();
             // @codeCoverageIgnoreEnd
         }
 
