@@ -2,16 +2,10 @@
 
 namespace Wheniwork\OAuth2\Client\Provider;
 
-use Wheniwork\OAuth2\Client\Grant\RenewToken;
-
-use Guzzle\Http\Exception\BadResponseException;
-use League\OAuth2\Client\Exception\IDPException;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
 use League\OAuth2\Client\Token\AccessToken;
-use League\OAuth2\Client\Grant\RefreshToken;
 use Psr\Http\Message\ResponseInterface;
-use GuzzleHttp\Exception\ClientException;
 
 class Square extends AbstractProvider
 {
@@ -63,93 +57,12 @@ class Square extends AbstractProvider
         return $this->scopeSeparator;
     }
 
-    /**
-     * Get the URL for rewnewing an access token.
-     *
-     * Square does not provide normal refresh tokens, and provides token
-     * renewal instead.
-     *
-     * @return string
-     */
-    public function urlRenewToken()
-    {
-        return $this->getConnectUrl(sprintf(
-            'oauth2/clients/%s/access-token/renew',
-            $this->clientId
-        ));
-    }
-
     public function userDetails($response, AccessToken $token)
     {
         // Ensure the response is converted to an array, recursively
         $response = json_decode(json_encode($response), true);
         $user = new SquareMerchant($response);
         return $user;
-    }
-
-    protected function getAccessTokenMethod()
-    {
-        return parent::getAccessTokenMethod();
-    }
-
-
-    /**
-     * Provides support for token renewal instead of token refreshing.
-     *
-     * {@inheritdoc}
-     *
-     * @return AccessToken
-     */
-    public function getAccessToken($grant, array $options = [])
-    {
-        if ($grant === 'refresh_token' || $grant instanceof RefreshToken) {
-            throw new \InvalidArgumentException(
-                'Square does not support refreshing tokens, please use renew_token instead'
-            );
-        }
-
-        if (is_string($grant) && $grant === 'renew_token') {
-            $grant = new RenewToken();
-        }
-
-        if (!($grant instanceof RenewToken)) {
-            return parent::getAccessToken($grant, $options);
-        }
-
-        $requestParams = $grant->prepRequestParams([], $options);
-
-        $headers = [
-            'Authorization' => 'Client ' . $this->clientSecret,
-            'Accept'        => 'application/json',
-        ];
-
-        try {
-          $guzzle = $this->getHttpClient();
-          $request = $guzzle->request('POST', $this->urlRenewToken(), [
-            'json' => $requestParams,
-            'headers' => $headers,
-          ]);
-
-          $response = $request->getBody();
-        } catch (BadResponseException $e) {
-            // @codeCoverageIgnoreStart
-            $response = $e->getParsedResponse()->getBody();
-            // @codeCoverageIgnoreEnd
-        } catch (ClientException $e) {
-          return false;
-        }
-
-        $result = json_decode($response, true);
-
-        if (!empty($result['error']) || !empty($e)) {
-            // @codeCoverageIgnoreStart
-            throw new IDPException($result);
-            // @codeCoverageIgnoreEnd
-        }
-
-        $result = $this->prepareAccessTokenResult($result);
-
-        return $grant->handleResponse($result);
     }
 
     protected function fetchUserDetails(AccessToken $token)
