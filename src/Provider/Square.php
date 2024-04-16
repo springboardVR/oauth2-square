@@ -10,6 +10,7 @@ use Psr\Http\Message\ResponseInterface;
 class Square extends AbstractProvider
 {
     use BearerAuthorizationTrait;
+    public $debug = false;
 
     public $scopeSeparator = ' ';
     public $defaultScopes = [];
@@ -24,7 +25,8 @@ class Square extends AbstractProvider
      */
     public function getConnectUrl($path)
     {
-        return "https://connect.squareup.com/{$path}";
+        $sandbox = $this->debug ? 'sandbox' : '';
+        return "https://connect.squareup{$sandbox}.com/{$path}";
     }
 
     public function getBaseAuthorizationUrl()
