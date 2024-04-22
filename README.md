@@ -69,27 +69,3 @@ if (!isset($_GET['code'])) {
     echo $token->accessToken;
 }
 ```
-
-## Refreshing a Token
-
-Square does not provide refresh tokens. Instead, an access token can be "renewed"
-up to 15 days after it expires. To accomdate this, the Square provider provides
-an additional grant, `RenewToken`.
-
-```php
-$provider = new Wheniwork\OAuth2\Client\Provider\Square([
-    'clientId'          => '{square-client-id}',
-    'clientSecret'      => '{square-client-secret}',
-    'redirectUri'       => 'https://example.com/callback-url'
-]);
-
-$token = $provider->getAccessToken('renew_token', ['access_token' => $accessToken]);
-```
-
-This grant can also be used by injecting the `AccessToken` instance directly,
-instead of providing a parameter to `getAccessToken`:
-
-```php
-$grant = new Wheniwork\OAuth2\Client\Grant\RenewToken($token);
-$token = $provider->getAccessToken($grant);
-```
